@@ -6,9 +6,11 @@
 Create a new folder called HW1_LastName. In this folder, save this SuperCollider document and also add two subfolders called "source" and "output". Immediately below this comment, write some code to to properly configure and boot the SC audio server, as you did in the previous assignment.
 */
 
-
-
-
+(
+s.options.numOutputBusChannels = 2;
+s.recChannels = 2;
+s.reboot;
+)
 
 
 /*
@@ -18,8 +20,22 @@ Find a very short, dry (i.e. little or no reverberation), percussive sound, such
 Then, write some code that simulates a bouncing object as it bounces from left to right across the stereophonic field. Each "bounce" should be represented by re-triggering your percussive sound. The total duration of this bouncing simulation should be five seconds. The bounces should move linearly from left to right, the amplitude of the bounces should get progressively quieter and eventually reach zero, and the time between bounces should get shorter and shorter (but not actually reach zero).
 */
 
+(
+{
+var buf, path, env, trig, sig;
 
 
+trig = Impulse.ar(2);
+env = Line.ar(-1, 1, 5, doneAction: 2);
+
+path = (PathName.new(thisProcess.nowExecutingPath)).parentPath++"source/metronome.wav");
+
+buf = Buffer.read(s, path);
+
+sig = PlayBuf.ar(1, buf, 1, trig);
+sig = Pan2.ar(sig, env);
+}.play
+)
 
 
 
