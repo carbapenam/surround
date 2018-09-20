@@ -24,11 +24,10 @@ Then, write some code that simulates a bouncing object as it bounces from left t
 {
 var buf, path, env, trig, sig;
 
-
-trig = Impulse.ar(2);
+trig = Impulse.ar(1.9);
 env = Line.ar(-1, 1, 5, doneAction: 2);
 
-path = (PathName.new(thisProcess.nowExecutingPath)).parentPath++"source/metronome.wav");
+path = (PathName.new(thisProcess.nowExecutingPath)).parentPath++"source/metronome.wav";
 
 buf = Buffer.read(s, path);
 
@@ -47,8 +46,24 @@ Then, write some code that uses a triggered process to play a chromatic scale us
 */
 
 
+(
+//Come back to this
+{
+var buf, path, env, trig, sig, freq, pan;
 
+trig = Impulse.ar(2);
+env = Line.kr(2, 1, 5, doneAction: 2);
 
+path = (PathName.new(thisProcess.nowExecutingPath)).parentPath++"source/wine_glass_strike.aiff";
+
+buf = Buffer.read(s, path);
+
+freq = Demand.ar(trig, 0, Dseq((Scale.major.degrees++12).midiratio));
+
+sig = PlayBuf.ar(1, buf, freq, trig);
+sig = Pan2.ar(sig, env);
+}.play
+)
 
 
 
