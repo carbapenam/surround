@@ -6,12 +6,16 @@
 Create a new folder called HW1_LastName. In this folder, save this SuperCollider document and also add two subfolders called "source" and "output". Immediately below this comment, write some code to to properly configure and boot the SC audio server, as you did in the previous assignment.
 */
 
+//run this first.
+~out_chan = 0;
+
 //For studio X setup.
 
 /*
 (
 s.options.numOutputBusChannels = 10;
 s.reboot;
+~out_chan = 2;
 )
 */
 
@@ -20,6 +24,7 @@ s.reboot;
 s.options.numOutputBusChannels = 2;
 s.recChannels = 2;
 s.reboot;
+~out_chan = 0;
 )
 
 
@@ -43,6 +48,7 @@ buf = Buffer.read(s, path);
 
 sig = PlayBuf.ar(1, buf, 1, trig);
 sig = Pan2.ar(sig, env);
+Out.ar(~out_chan, sig);
 }.play
 )
 
@@ -75,6 +81,7 @@ freq = Demand.ar(trig, 0, Dseq((Scale.chromatic.degrees++12).midiratio));
 
 sig = PlayBuf.ar(1, buf, freq, trig) * env;
 sig = Pan2.ar(sig, pan);
+Out.ar(~out_chan, sig);
 }.play
 )
 
@@ -111,11 +118,12 @@ pan_offset = LFDNoise0.ar(freq, 0.5, 0);
 rate_offset = LFDNoise0.ar(freq, 0.1, 0);
 shuffler = Drand.new(buf);
 
-sig = PlayBuf.ar(out_chan,
+sig = PlayBuf.ar(1,
 	  Demand.ar(trig, 0, shuffler),
       1 + rate_offset, trig);
 
-sig = Pan2.ar(sig, pan_offset);
+sig = Pan2.ar(sig, pan_offset) * env;
+Out.ar(~out_chan, sig);
 }.play
 )
 
