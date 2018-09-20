@@ -6,6 +6,16 @@
 Create a new folder called HW1_LastName. In this folder, save this SuperCollider document and also add two subfolders called "source" and "output". Immediately below this comment, write some code to to properly configure and boot the SC audio server, as you did in the previous assignment.
 */
 
+//For studio X setup.
+
+/*
+(
+s.options.numOutputBusChannels = 10;
+s.reboot;
+)
+*/
+
+//Comment this out if you are in studio X.
 (
 s.options.numOutputBusChannels = 2;
 s.recChannels = 2;
@@ -24,7 +34,7 @@ Then, write some code that simulates a bouncing object as it bounces from left t
 {
 var buf, path, env, trig, sig;
 
-trig = Impulse.ar(1.9);
+trig = Impulse.ar(1.99);
 env = Line.ar(-1, 1, 5, doneAction: 2);
 
 path = (PathName.new(thisProcess.nowExecutingPath)).parentPath++"source/metronome.wav";
@@ -47,21 +57,24 @@ Then, write some code that uses a triggered process to play a chromatic scale us
 
 
 (
-//Come back to this
 {
-var buf, path, env, trig, sig, freq, pan;
+var buf, path, env, trig, sig, freq, pan, rate;
 
-trig = Impulse.ar(2);
-env = Line.kr(2, 1, 5, doneAction: 2);
+rate = 2;
+trig = Impulse.ar(rate);
+pan = ToggleFF.ar(trig)*2-1; //This is so hacky, but i dig.
+
+env = EnvGen.ar(Env.new([1, 1, 0], [13 * 1 / rate, 0]),
+	  doneAction: 2); //so is this.
 
 path = (PathName.new(thisProcess.nowExecutingPath)).parentPath++"source/wine_glass_strike.aiff";
 
 buf = Buffer.read(s, path);
 
-freq = Demand.ar(trig, 0, Dseq((Scale.major.degrees++12).midiratio));
+freq = Demand.ar(trig, 0, Dseq((Scale.chromatic.degrees++12).midiratio));
 
-sig = PlayBuf.ar(1, buf, freq, trig);
-sig = Pan2.ar(sig, env);
+sig = PlayBuf.ar(1, buf, freq, trig) * env;
+sig = Pan2.ar(sig, pan);
 }.play
 )
 
@@ -73,7 +86,38 @@ Extract five similar but unique footstep samples from Foley CD #4 (or find somet
 
 Then, write some code that simulates someone walking through the stereophonic field in a random, meandering way. Use a trigger signal to select and play a random sample for each footstep. The footsteps can be quick or slow, but should a realistic pace for footsteps. The speed of the walking movement through the stereophonic field should also be realistic (i.e. not magically "teleporting" from hard left to hard right). For additional realism, the playback rate should randomly vary above and below the original playback rate, but only slightly. The footsteps should fade in over five seconds, stay at full amplitude for ten seconds, and fade out again over five seconds, for a total duration of 20 seconds.
 */
+(
+{
+var parent;
+var buf, env;
+var sig, trig, rate_offset, pan_offset, shuffler;
+var freq = 2;
 
+parent = (PathName.new(thisProcess.nowExecutingPath)).parentPath;
+
+
+buf = [Buffer.read(s, parent++"source/footsteps/1.wav"),
+Buffer.read(s, parent++"source/footsteps/2.wav"),
+Buffer.read(s, parent++"source/footsteps/3.wav"),
+Buffer.read(s, parent++"source/footsteps/4.wav"),
+Buffer.read(s, parent++"source/footsteps/5.wav")
+];
+
+env = EnvGen.ar(Env.new([0.2,1, 1, 0], [5, 10, 5]),
+	  doneAction: 2);
+
+trig = Impulse.ar(freq);
+pan_offset = LFDNoise0.ar(freq, 0.5, 0);
+rate_offset = LFDNoise0.ar(freq, 0.1, 0);
+shuffler = Drand.new(buf);
+
+sig = PlayBuf.ar(out_chan,
+	  Demand.ar(trig, 0, shuffler),
+      1 + rate_offset, trig);
+
+sig = Pan2.ar(sig, pan_offset);
+}.play
+)
 
 
 
